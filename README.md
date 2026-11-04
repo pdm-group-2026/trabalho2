@@ -10,34 +10,26 @@ API no Cloud Run: https://api-volatilidade-t6p7bcqvbq-uc.a.run.app (privada: as 
 
 ## Arquitetura
 
-cat > README.md <<'FIM_README'
-# Trabalho 2: streaming e deploy de modelo (volatilidade do Bitcoin)
+```
+BATCH (Trabalho 1)
+  Binance (trades) -> GCS Parquet -> Bronze -> Silver (1 h) -> Gold -> treino do modelo
+                                        |
+                                        v
+                                 btc_klines_1m (velas de 1 min do período de teste)
+                                        |
+STREAMING (Trabalho 2)                  v
+  Simulador (Cloud Run Job) -> Pub/Sub btc-klines (schema Avro) -> Dataflow (Apache Beam)
+                                                                     |              |
+                                                                     v              v
+                                                      btc_stream_bronze    btc_stream_silver (1 h)
+                                                         (1 min, cru)               |
+                                                                                    v
+                                                                     btc_stream_gold (view, 13 features)
 
-Evolução do Trabalho 1. O modelo que prevê **alta volatilidade do BTC nas próximas 4 horas**
-(variação de 0,5% ou mais) agora recebe dados em tempo real, está publicado no Vertex AI e é servido
-por uma API REST no Cloud Run.
-
-Projeto GCP: `pdm-trabalho-508212` · Dataset BigQuery: `btc` (US) · Região dos serviços: `us-central1`
-
-API no Cloud Run: https://api-volatilidade-t6p7bcqvbq-uc.a.run.app (privada: as chamadas levam token, ver abaixo)
-
-## Arquitetura
-
-                 ┌──────────── BATCH (Trabalho 1) ────────────┐
-Binance (trades) ──► GCS Parquet ──► Bronze ──► Silver (1 h) ──► Gold ──► treino do modelo
-│
-▼
-btc_klines_1m (velas de 1 min do período de teste)
-│
-┌──────────────────────────── STREAMING (Trabalho 2) ─────────────────────────────┐
-│ Simulador (Cloud Run Job) ──► Pub/Sub btc-klines (schema Avro) ──► Dataflow │
-│ │ │ │
-│ ▼ ▼ │
-│ btc_stream_bronze (1 min) btc_stream_silver │
-│ (1 h) ──► view │
-│ btc_stream_gold │
-└────────────────────────────────────────────────────────────────────────────────────┘
-Cliente ──► API REST (Cloud Run) ──► features da Gold (stream ou batch) ──► Vertex AI rf-volatilidade-4h ──► 0 ou 1
+PREDIÇÃO
+  Cliente -> API REST (Cloud Run) -> features da Gold (stream ou batch)
+                                  -> Vertex AI rf-volatilidade-4h -> 0 ou 1
+```
 
 - **Streaming simulado** (liberado pelo professor): o simulador reproduz velas reais de 1 minuto do
   período de teste (a partir de 10/04/2026), que o modelo nunca viu, em velocidade acelerada.
