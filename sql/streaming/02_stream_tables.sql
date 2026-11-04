@@ -1,5 +1,5 @@
 -- Tabelas de destino do Dataflow.
--- Sem partição: são pequenas, e a inserção em streaming não aceita partições de datas antigas.
+-- Sem partição: são tabelas pequenas (poucos milhares de linhas); particionar não reduziria o volume lido.
 
 -- Bronze do stream: cada vela de 1 minuto consumida do Pub/Sub, crua, no momento em que chega.
 CREATE TABLE IF NOT EXISTS `btc.btc_stream_bronze` (
