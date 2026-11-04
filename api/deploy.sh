@@ -18,7 +18,7 @@ sleep 10 # o IAM leva alguns segundos para enxergar uma conta nova
 
 for ROLE in roles/bigquery.jobUser roles/bigquery.dataViewer roles/aiplatform.user; do
   gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA_API" \
-    --role="$ROLE" --condition=None -q >/dev/null && echo "ok: $ROLE"
+    --role="$ROLE" --condition=None -q >/dev/null || { echo "ERRO ao conceder $ROLE: só o Proprietário do projeto pode dar permissões" >&2; exit 1; }; echo "ok: $ROLE"
 done
 
 ENDPOINT_ID="$(gcloud ai endpoints list --region="$REGION" \

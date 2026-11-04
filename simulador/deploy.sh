@@ -13,12 +13,12 @@ sleep 10  # o IAM leva alguns segundos para enxergar uma conta nova
 
 for ROLE in roles/bigquery.jobUser roles/bigquery.dataViewer roles/pubsub.publisher; do
   gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA_SIM" \
-    --role="$ROLE" --condition=None -q >/dev/null && echo "ok: $ROLE"
+    --role="$ROLE" --condition=None -q >/dev/null || { echo "ERRO ao conceder $ROLE: só o Proprietário do projeto pode dar permissões" >&2; exit 1; }; echo "ok: $ROLE"
 done
 # o Cloud Build monta a imagem com a conta padrão do Compute Engine
 gcloud projects add-iam-policy-binding "$PROJECT" \
   --member="serviceAccount:$PN-compute@developer.gserviceaccount.com" \
-  --role=roles/cloudbuild.builds.builder --condition=None -q >/dev/null && echo "ok: cloud build"
+  --role=roles/cloudbuild.builds.builder --condition=None -q >/dev/null || { echo "ERRO ao conceder cloud build: só o Proprietário do projeto pode dar permissões" >&2; exit 1; }; echo "ok: cloud build"
 
 gcloud run jobs deploy simulador-btc \
   --source simulador \

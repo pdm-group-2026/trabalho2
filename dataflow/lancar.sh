@@ -16,7 +16,7 @@ fi
 for ROLE in roles/dataflow.worker roles/pubsub.subscriber roles/pubsub.viewer \
             roles/bigquery.dataEditor roles/storage.objectAdmin; do
   gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$SA_DF" \
-    --role="$ROLE" --condition=None -q >/dev/null && echo "ok: $ROLE"
+    --role="$ROLE" --condition=None -q >/dev/null || { echo "ERRO ao conceder $ROLE: só o Proprietário do projeto pode dar permissões" >&2; exit 1; }; echo "ok: $ROLE"
 done
 
 # descarta mensagens antigas antes de começar

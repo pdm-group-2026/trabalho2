@@ -125,6 +125,11 @@ e, no Cloud Shell, **Visualização na Web → porta 8080** → `/docs`.
 | Stream de ponta a ponta (27/06 08h a 12h, 120x) | 5 velas de 1 hora, `n_minutos = 60`, iguais à Silver do Trabalho 1, uma a cada 30 s |
 | Modelo no Vertex AI (scikit-learn) | AUC 0,667 no teste (BigQuery ML: 0,669); baseline de acurácia 0,618 |
 | Endpoint | Horas calmas `[0,0,0,0]` e horas turbulentas de 26/06 `[1,1,1,1]`, todas corretas |
+| Gold do stream x Gold do Trabalho 1 (26/06 08h a 13h) | 6 horas iguais; retornos com diferença zero, volatilidade com 0,004% (ver abaixo) |
+| Previsão pela API: stream x batch (26/06 08h a 13h) | Idêntica nas 6 horas; o modelo acertou 4 de 6 |
+| Latência da API (BigQuery + Vertex AI) | Cerca de 2 s por previsão |
+
+**Achado da conferência stream x batch:** a Silver do Trabalho 1 escolhe o fechamento da hora entre trades do mesmo milissegundo sem critério fixo; o stream desempata pelo `id` do trade. Nas horas com esse empate, o fechamento muda na 6ª casa decimal, sem efeito nas previsões. Testes: `sql/streaming/06_conferir_stream_gold.sql` e `api/comparar_stream_batch.sh`.
 
 Contrato do endpoint: 13 features **por posição**, nesta ordem:
 `return_1h, return_4h, return_8h, volatility_24h, volume_ratio_24h, trade_count, order_flow_ratio,
